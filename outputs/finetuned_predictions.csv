@@ -1,0 +1,2 @@
+id_str,Disturbed_pred,Merging_pred,Round Smooth_pred,In-between Round Smooth_pred,Cigar Shaped Smooth_pred,Barred Spiral_pred,Unbarred Tight Spiral_pred,Unbarred Loose Spiral_pred,Edge-on without Bulge_pred,Edge-on with Bulge_pred
+test_a,0.0012529207160696387,6.805566954426467e-05,0.00014738809841219336,9.51076508499682e-05,3.2831576390890405e-05,0.9966931343078613,9.46644286159426e-05,0.0005237365257926285,0.0001273513917112723,0.00096479756757617
