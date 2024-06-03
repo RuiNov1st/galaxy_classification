@@ -1,0 +1,51 @@
+<div id="aladin-lite-div" style="width:400px;height:400px;"></div>
+<button id="infoButton">Get Image</button>
+
+<!-- aladin GUI -->
+<script type="text/javascript" src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
+    charset="utf-8"></script>
+<script type="text/javascript">
+    let aladin;
+    A.init.then(() => {
+        aladin = A.aladin('#aladin-lite-div', {
+            target: 'NGC 1365',
+            cooFrame: 'ICRS',
+            survey: 'P/DESI-Legacy-Surveys/DR10/color',
+            fov: 0.5 // deg
+        });
+    });
+
+    document.getElementById('infoButton').addEventListener('click', async () => {
+        if (aladin) {
+            // get information about Aladin View: RA DEC FOV size survey
+            const view = aladin.getRaDec()
+            const ra = view[0]
+            const dec = view[1]
+            const fov = aladin.getFov()[0]
+            const size = parseInt(aladin.getSize()[0])
+            let imagelayer = aladin.getBaseImageLayer()
+            const surveyid = imagelayer.creatorDid
+            // debug:
+            console.log(`RA: ${ra}, Dec: ${dec}, FOV: ${fov}, Size: ${size},surveyid:${surveyid}`)
+
+            // post information for image download:
+            // axios
+            fetch('http://localhost:8000/coord', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ra: ra, dec: dec, fov: fov, size: size, surveyid: surveyid })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response from backend:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else {
+            console.error("Aladin Lite 尚未初始化完成");
+        }
+    });
+</script>
