@@ -1,5 +1,7 @@
 # 星系分类模型算法和搜索部分
+# 星系分类模型算法和搜索部分
 
+Update: 2024/06/03
 Update: 2024/06/03
 
 Author: weishirui
@@ -10,12 +12,18 @@ galaxy_classification
     |—— dataset/    # 数据集
     |   |—— Galaxy10_DECals_predict/    # 基于Galaxy10 DECals的测试数据集，包含十张图片，一类一张，用于测试
     |   |—— galaxy_catalog/ # 基于SDSS星表的星系坐标，用于测试搜索功能
+    |   |—— galaxy_catalog/ # 基于SDSS星表的星系坐标，用于测试搜索功能
     |—— model/  # 模型
     |   |—— zoobot/ # 基于zoobot v2框架的模型
     |       |—— convnext_nano/  # encoder模型文件
     |       |—— finetune_model/ # 微调后的模型权重文件
     |—— outputs/    # 输出结果保存
     |—— lightning_logs/ # 日志（自动生成）
+    |—— search_tool/ # 搜索功能
+    |       |—— aladin.html # Aladin GUI交互界面 & 获取图像的按钮，用于单个星系的图像搜索以及下载
+    |       |—— main.py # FastAPI：获取前端返回的Aladin视图信息，下载对应图像并返回Simbad查询得到的单个星系信息
+    |       |—— search_tool.py # 搜索功能包含的主要函数：图像URL生成、图像下载、信息查询
+    |       |—— test.py # 基于表格数据的多星系图像下载测试脚本
     |—— search_tool/ # 搜索功能
     |       |—— aladin.html # Aladin GUI交互界面 & 获取图像的按钮，用于单个星系的图像搜索以及下载
     |       |—— main.py # FastAPI：获取前端返回的Aladin视图信息，下载对应图像并返回Simbad查询得到的单个星系信息
@@ -40,9 +48,11 @@ git clone https://github.com/mwalmsley/zoobot.git
 pip install -e "zoobot[pytorch-cpu]" --extra-index-url https://download.pytorch.org/whl/cpu 
 ```
 - 另外可能需要安装的库
+- 另外可能需要安装的库
 ```
 pip install -r requirements.txt
 ```
+#### Debug
 #### Debug
 - 前提：需要魔改zoobot的库函数以使其能够跑起来：）否则会尝试连接huggingface，然后报443
 
@@ -63,6 +73,39 @@ if name is not None:
     self.encoder = timm.create_model('convnext_nano', num_classes=0,pretrained=True, pretrained_cfg_overlay=dict(file='/root/demo/model/zoobot/convnext_nano/pytorch_model.bin')) # 路径请找到本项目文件夹中的./model/zoobot/convnext_nano/pytorch_model.bin，然后使用绝对路径
     self.encoder_dim = self.encoder.num_features
 ```
+- Warning解决：如遇到以下Warning：
+```
+GZDESI/GZRings/GZCD not available from galaxy_datasets.pytorch.datasets - skipping
+```
+可通过修改安装环境中的galaxy_datasets库文件来解决。
+
+首先找到你的安装环境下的galaxy_datasets包，例如`/root/miniconda3/lib/python3.10/site-packages/galaxy_datasets/`，再找到`galaxy_datasets/pytorch/__init__.py`文件。
+将代码3-7行注释掉，即
+```
+from galaxy_datasets.pytorch.datasets import GZCandels, GZDecals5, GZHubble, GZ2, Tidal
+
+try:
+    from galaxy_datasets.pytorch.datasets import GZDesi, GZRings, GZH2O
+except ImportError:
+    # not using logging in case config still required
+    print('GZDESI/GZRings/GZCD not available from galaxy_datasets.pytorch.datasets - skipping')    
+```
+改为
+```
+from galaxy_datasets.pytorch.datasets import GZCandels, GZDecals5, GZHubble, GZ2, Tidal
+
+# try:
+#     from galaxy_datasets.pytorch.datasets import GZDesi, GZRings, GZH2O
+# except ImportError:
+#     # not using logging in case config still required
+#     print('GZDESI/GZRings/GZCD not available from galaxy_datasets.pytorch.datasets - skipping')    
+```
+可解决该问题。
+
+问题参考：https://github.com/mwalmsley/galaxy-datasets/issues/26
+
+#### Classification
+**星系分类算法主函数：galaxy_classification_main.py**
 - Warning解决：如遇到以下Warning：
 ```
 GZDESI/GZRings/GZCD not available from galaxy_datasets.pytorch.datasets - skipping
